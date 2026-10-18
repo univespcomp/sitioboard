@@ -3,61 +3,16 @@
 Aplicação **React (Vite)** que exibe a previsão de temperatura para o dia seguinte (D+1)
 e as condições recentes da estação, consumindo a API do projeto integrador:
 
-| Rota | Uso no app |
-| --- | --- |
-| `GET /api/executar` | Última previsão (KPI principal) |
-| `GET /api/previsoes` | Previsões emitidas → gráfico de previsões e tabela |
-| `GET /api/observacoes` | Histórico observado → gráfico de umidade e chuva |
+| Rota                   | Uso no app                                         |
+| ---------------------- | -------------------------------------------------- |
+| `GET /api/executar`    | Última previsão (KPI principal)                    |
+| `GET /api/previsoes`   | Previsões emitidas → gráfico de previsões e tabela |
+| `GET /api/observacoes` | Histórico observado → gráfico de umidade e chuva   |
 
 Base: `https://sitioapi.onrender.com`
 
 > **Login de demonstração:** usuário `admin` · senha `admin`
 > ⚠️ É só uma barreira de interface. Veja [`docs/SEGURANCA_E_ERROS.md`](docs/SEGURANCA_E_ERROS.md).
-
----
-
-## Erro de CORS — o que é e como resolver
-
-**CORS** é uma regra do *navegador*: uma página em `https://meu-site` só lê a resposta de
-`https://sitioapi.onrender.com` se a API responder com o cabeçalho
-`Access-Control-Allow-Origin` permitindo aquele site. **Não há como corrigir isso só no código do
-front-end** — a correção definitiva é na API. Há 3 caminhos:
-
-### 1. Em desenvolvimento (já resolvido neste projeto)
-`npm run dev` usa o **proxy do Vite** (`vite.config.js`): o navegador chama `/api/...` no próprio
-`localhost` (mesma origem, sem CORS) e o Vite repassa para a API. Nada a configurar.
-
-### 2. Em produção — corrija na API (recomendado)
-Libere apenas o domínio do dashboard. Exemplos (use o da sua stack):
-
-```python
-# Flask  (pip install flask-cors)
-from flask_cors import CORS
-CORS(app, origins=["https://SEU-DOMINIO", "http://localhost:5173"], methods=["GET"])
-```
-```python
-# FastAPI
-from fastapi.middleware.cors import CORSMiddleware
-app.add_middleware(CORSMiddleware, allow_origins=["https://SEU-DOMINIO", "http://localhost:5173"],
-                   allow_methods=["GET"], allow_headers=["*"])
-```
-```js
-// Express  (npm i cors)
-app.use(require("cors")({ origin: ["https://SEU-DOMINIO", "http://localhost:5173"], methods: ["GET"] }));
-```
-Evite `*` (qualquer site poderia consumir a API). Depois de publicar a correção, redeploy da API.
-
-### 3. Em produção — proxy na hospedagem (alternativa, sem mexer na API)
-Netlify (`public/_redirects`) e Vercel (`vercel.json`) já têm o *rewrite* pronto. Basta definir
-`VITE_API_BASE_URL=/api` no build. O navegador passa a falar só com o seu domínio.
-GitHub Pages **não** tem proxy.
-
-> 💡 **Pegadinha do Render:** quando o servidor está "dormindo" ou reiniciando, ele devolve erro
-> 502/503 *sem* cabeçalhos CORS, e o navegador reporta isso como erro de CORS mesmo que a
-> configuração esteja certa. Se o erro for intermitente, abra a URL da API direto no navegador,
-> espere ela acordar e clique em **Atualizar**.
-
----
 
 ## O que a aplicação faz
 
@@ -92,6 +47,7 @@ src/
 `normalizers` (valida/converte) → componentes.
 
 ### ⚠️ Formato dos dados (leia se algo aparecer "Sem dados")
+
 Não consegui inspecionar `/previsoes` e `/observacoes` ao montar o app. Os normalizadores assumem
 os **mesmos nomes de coluna dos CSVs originais** e aceitam variações comuns:
 
