@@ -10,14 +10,23 @@ import {
   isFallbackMethod,
 } from "../utils/format";
 import ConditionsChart from "./ConditionsChart";
+import ErrorBoundary from "./ErrorBoundary";
 import ForecastChart from "./ForecastChart";
 import HistoryTable from "./HistoryTable";
 import KpiCard from "./KpiCard";
 
-/** Conteúdo de um cartão: gráfico/tabela, "carregando" ou "sem dados". */
+/**
+ * Conteúdo de um cartão: gráfico/tabela, "carregando" ou "sem dados".
+ * O ErrorBoundary isola falhas de renderização: se um gráfico quebrar,
+ * só o seu cartão mostra o erro e o resto do dashboard continua.
+ */
 function CardBody({ hasData, isLoading, children }) {
-  if (hasData) return children;
-  return <p className="empty">{isLoading ? "Carregando..." : "Sem dados para exibir."}</p>;
+  if (hasData) return <ErrorBoundary>{children}</ErrorBoundary>;
+  return (
+    <p className="empty">
+      {isLoading ? "Carregando..." : "Sem dados para exibir."}
+    </p>
+  );
 }
 
 /**
@@ -26,8 +35,16 @@ function CardBody({ hasData, isLoading, children }) {
  */
 export default function Dashboard() {
   const { user, logout } = useAuth();
-  const { current, forecasts, observations, station, fetchedAt, errors, isLoading, reload } =
-    useDashboardData();
+  const {
+    current,
+    forecasts,
+    observations,
+    station,
+    fetchedAt,
+    errors,
+    isLoading,
+    reload,
+  } = useDashboardData();
 
   return (
     <div className="container">
@@ -39,7 +56,12 @@ export default function Dashboard() {
 
         <div className="toolbar">
           <span className="toolbar-user">Sessão: {user}</span>
-          <button type="button" className="btn" onClick={reload} disabled={isLoading}>
+          <button
+            type="button"
+            className="btn"
+            onClick={reload}
+            disabled={isLoading}
+          >
             {isLoading ? "Consultando..." : "Atualizar"}
           </button>
           <button type="button" className="btn btn-ghost" onClick={logout}>
@@ -57,14 +79,15 @@ export default function Dashboard() {
         ))}
         {isLoading && !current && (
           <div className="alert" role="status">
-            Consultando a API... na primeira consulta o servidor pode levar até 1 minuto para acordar.
+            Consultando a API... na primeira consulta o servidor pode levar até
+            1 minuto para acordar.
           </div>
         )}
         {current && isFallbackMethod(current.method) && (
           <div className="alert alert-warning" role="status">
-            Esta previsão usou <strong>{formatMethod(current.method)}</strong> porque não havia
-            observação real do dia-base. A confiabilidade é menor que a de uma previsão com dados
-            observados.
+            Esta previsão usou <strong>{formatMethod(current.method)}</strong>{" "}
+            porque não havia observação real do dia-base. A confiabilidade é
+            menor que a de uma previsão com dados observados.
           </div>
         )}
 
@@ -86,7 +109,11 @@ export default function Dashboard() {
           />
           <KpiCard
             title="Última atualização"
-            value={current?.issuedAt ? formatIssuedDate(current.issuedAt) : formatDateTime(fetchedAt)}
+            value={
+              current?.issuedAt
+                ? formatIssuedDate(current.issuedAt)
+                : formatDateTime(fetchedAt)
+            }
             subtitle={`Entrada: ${formatMethod(current?.method)}`}
             small
           />
@@ -118,8 +145,8 @@ export default function Dashboard() {
 
       <footer>
         <p>
-          Dashboard Operacional - Desenvolvido como Projeto Integrador IV. Dados fornecidos pelo
-          INMET.
+          Dashboard Operacional - Desenvolvido como Projeto Integrador IV. Dados
+          fornecidos pelo INMET.
         </p>
       </footer>
     </div>
